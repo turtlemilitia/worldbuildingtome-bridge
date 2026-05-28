@@ -14,8 +14,9 @@
       "url": "https://worldbuildingtome.io"
     }
   ],
-  "url": "https://worldbuildingtome.io",
-  "manifest": "https://worldbuildingtome.io/foundry-module/module.json",
+  "url": "https://github.com/turtlemilitia/worldbuildingtome-bridge",
+  "manifest": "https://github.com/turtlemilitia/worldbuildingtome-bridge/releases/latest/download/module.json",
+  "download": "https://github.com/turtlemilitia/worldbuildingtome-bridge/releases/latest/download/module.zip",
   "scripts": [
     "scripts/vendor/pusher.min.js"
   ],
