@@ -1,0 +1,40 @@
+{
+  "id": "worldbuildingtome-bridge",
+  "title": "World Building Tome — Bridge",
+  "description": "Receives commands from the World Building Tome app (e.g. show an image to all players) and runs them inside this Foundry world. The connecting user must be a GM.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13",
+    "maximum": "14"
+  },
+  "authors": [
+    {
+      "name": "World Building Tome",
+      "url": "https://worldbuildingtome.io"
+    }
+  ],
+  "url": "https://worldbuildingtome.io",
+  "manifest": "https://worldbuildingtome.io/foundry-module/module.json",
+  "scripts": [
+    "scripts/vendor/pusher.min.js"
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/wbt.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "flags": {
+    "worldbuildingtome-bridge": {
+      "managedBy": "wbt"
+    }
+  }
+}

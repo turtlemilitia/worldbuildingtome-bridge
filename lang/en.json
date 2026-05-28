@@ -1,0 +1,6 @@
+{
+  "WBT.settings.apiBase.name": "World Building Tome API base URL",
+  "WBT.settings.apiBase.hint": "The HTTPS URL of your World Building Tome backend (e.g. https://api.worldbuildingtome.io). No trailing slash.",
+  "WBT.settings.connectionToken.name": "Foundry connection token",
+  "WBT.settings.connectionToken.hint": "Paste the token shown once when you created this Foundry connection in the app. If you lose it, revoke the connection and create a new one."
+}
