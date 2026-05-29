@@ -106,6 +106,9 @@ function connect({ apiBase, token, bootstrap }) {
 
   // Pusher global is loaded via the vendored UMD listed in module.json.
   const pusher = new globalThis.Pusher(broadcast.key, {
+    // pusher-js rejects a missing cluster even when wsHost (Reverb) makes it
+    // unused; a throwaway value satisfies the check.
+    cluster: 'reverb',
     wsHost: broadcast.host,
     wsPort: broadcast.port,
     wssPort: broadcast.port,
