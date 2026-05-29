@@ -1,2 +1,15 @@
-/* Reserved for future module UI. The current image-share flow uses
-   Foundry's stock ImagePopout chrome — no overrides needed. */
+/* Foundry's image-popout lays out window-content > figure > img as nested
+   column flexboxes, but none set `min-height: 0`. A flex item defaults to
+   `min-height: auto`, which floors it at its content size — so a large image
+   keeps the whole chain at its natural height, overflowing the (correctly
+   sized) window, and `object-fit: contain` then centres it with a gap above
+   and below. Relaxing the minimum on every level of the chain lets it collapse
+   to the window so the image fits. Scoped to our popouts (tagged in
+   scripts/actions/share-image.js) so native Foundry popouts are unaffected. */
+.wbt-image-popout .window-content,
+.wbt-image-popout figure,
+.wbt-image-popout img,
+.wbt-image-popout video {
+  min-height: 0;
+  min-width: 0;
+}

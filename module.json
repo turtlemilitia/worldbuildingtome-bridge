@@ -4,7 +4,7 @@
   "description": "Receives commands from the World Building Tome app (e.g. show an image to all players) and runs them inside this Foundry world. The connecting user must be a GM.",
   "version": "0.1.0",
   "compatibility": {
-    "minimum": "12",
+    "minimum": "13",
     "verified": "13",
     "maximum": "14"
   },
