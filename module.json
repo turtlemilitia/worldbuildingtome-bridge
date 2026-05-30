@@ -2,7 +2,7 @@
   "id": "worldbuildingtome-bridge",
   "title": "World Building Tome — Bridge",
   "description": "Receives commands from the World Building Tome app (e.g. show an image to all players) and runs them inside this Foundry world. The connecting user must be a GM.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13",
