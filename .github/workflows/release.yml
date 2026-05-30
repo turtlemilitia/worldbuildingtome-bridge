@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      MODULE_ID: worldbuildingtome-bridge
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify module.json version matches the tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest="$(jq -r .version module.json)"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::Tag v$tag does not match module.json version $manifest"
+            exit 1
+          fi
+
+      - name: Build module.zip
+        run: |
+          mkdir -p build/"$MODULE_ID"
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.idea' \
+            --exclude='.vscode' \
+            --exclude='.DS_Store' \
+            --exclude='build' \
+            ./ build/"$MODULE_ID"/
+          ( cd build && zip -rq module.zip "$MODULE_ID" )
+          cp module.json build/module.json
+
+      - name: Publish release assets
+        run: |
+          tag="$GITHUB_REF_NAME"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" build/module.json build/module.zip --clobber
+          else
+            gh release create "$tag" \
+              --title "$tag" \
+              --generate-notes \
+              build/module.json build/module.zip
+          fi
