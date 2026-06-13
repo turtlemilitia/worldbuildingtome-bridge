@@ -1,5 +1,6 @@
 import { actions } from './actions/index.js';
 import { getCoreVersion } from './compat.js';
+import { reportPlaylists, watchPlaylists } from './playlists.js';
 
 const MODULE_ID = 'worldbuildingtome-bridge';
 const LOG_PREFIX = '[WBT]';
@@ -52,6 +53,11 @@ Hooks.once('ready', async () => {
     activeConnection = connect({ apiBase, token, bootstrap });
     console.info(`${LOG_PREFIX} connected as connection #${bootstrap.data.id} (Foundry ${getCoreVersion()})`);
     ui.notifications?.info(`World Building Tome: connected as "${bootstrap.data.name}".`);
+
+    reportPlaylists(apiBase, token).catch((err) => {
+      console.warn(`${LOG_PREFIX} initial playlist report failed:`, err);
+    });
+    watchPlaylists(apiBase, token);
   } catch (err) {
     console.error(`${LOG_PREFIX} bootstrap failed:`, err);
     ui.notifications?.error(`World Building Tome: ${err.message || 'connection failed'}`);
