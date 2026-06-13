@@ -1,4 +1,5 @@
 import shareImage from './share-image.js';
+import playTrack from './play-track.js';
 
 /**
  * Registry of broadcast event names → handler. Adding a future action is
@@ -9,4 +10,5 @@ import shareImage from './share-image.js';
  */
 export const actions = {
   'share-image': shareImage,
+  'play-track': playTrack,
 };
