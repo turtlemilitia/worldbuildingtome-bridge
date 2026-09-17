@@ -5,6 +5,11 @@
  * `playlistName` is given it scopes the search, falling back to every playlist
  * if that playlist has no match.
  *
+ * Soundboard-mode playlists are exempt from the stop-everything step: in
+ * Foundry they're one-shot effects meant to layer over whatever music is
+ * already running, not replace it, so we never interrupt other playback for
+ * them regardless of `replace`.
+ *
  * @param {{ trackName?: string, playlistName?: string | null, replace?: boolean }} payload
  */
 export default async function playTrack(payload) {
@@ -22,7 +27,9 @@ export default async function playTrack(payload) {
     return;
   }
 
-  if (payload?.replace !== false) {
+  const isSoundboard = match.playlist.mode === CONST.PLAYLIST_MODES.SOUNDBOARD;
+
+  if (payload?.replace !== false && !isSoundboard) {
     await stopEverything();
   }
 
