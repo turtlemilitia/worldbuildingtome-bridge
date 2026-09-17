@@ -27,7 +27,10 @@ export default async function playTrack(payload) {
     return;
   }
 
-  const isSoundboard = match.playlist.mode === CONST.PLAYLIST_MODES.SOUNDBOARD;
+  // Foundry has no PLAYLIST_MODES.SOUNDBOARD member — "Soundboard" mode in the
+  // UI is CONST.PLAYLIST_MODES.DISABLED (docs: "the playlist does not play on
+  // its own, only individual Sound tracks played as a soundboard").
+  const isSoundboard = match.playlist.mode === CONST.PLAYLIST_MODES.DISABLED;
 
   if (payload?.replace !== false && !isSoundboard) {
     await stopEverything();
