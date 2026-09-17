@@ -1,16 +1,16 @@
 /**
- * Switch the world's music to a named playlist sound. The app sends a track by
- * name (sounds ids differ per world, so names are the portable handle); we find
- * the matching sound, stop whatever is currently playing, and play it. When
- * `playlistName` is given it scopes the search, falling back to every playlist
- * if that playlist has no match.
+ * Play a named playlist sound. The app sends a track by name (sound ids differ
+ * per world, so names are the portable handle); we find the matching sound and
+ * hand it to Foundry. When `playlistName` is given it scopes the search,
+ * falling back to every playlist if that playlist has no match.
  *
- * Soundboard-mode playlists are exempt from the stop-everything step: in
- * Foundry they're one-shot effects meant to layer over whatever music is
- * already running, not replace it, so we never interrupt other playback for
- * them regardless of `replace`.
+ * What keeps playing is Foundry's call, not ours: `playSound` already
+ * "determine[s] which other sounds should remain playing" from the owning
+ * playlist's mode — sequential and shuffle replace their current track,
+ * simultaneous and soundboard layer on top. Stopping anything ourselves would
+ * override the mode the GM chose for that playlist.
  *
- * @param {{ trackName?: string, playlistName?: string | null, replace?: boolean }} payload
+ * @param {{ trackName?: string, playlistName?: string | null }} payload
  */
 export default async function playTrack(payload) {
   const trackName = String(payload?.trackName ?? '').trim();
@@ -25,15 +25,6 @@ export default async function playTrack(payload) {
   if (!match) {
     ui.notifications?.warn(`World Building Tome: no track named "${trackName}" was found.`);
     return;
-  }
-
-  // Foundry has no PLAYLIST_MODES.SOUNDBOARD member — "Soundboard" mode in the
-  // UI is CONST.PLAYLIST_MODES.DISABLED (docs: "the playlist does not play on
-  // its own, only individual Sound tracks played as a soundboard").
-  const isSoundboard = match.playlist.mode === CONST.PLAYLIST_MODES.DISABLED;
-
-  if (payload?.replace !== false && !isSoundboard) {
-    await stopEverything();
   }
 
   await match.playlist.playSound(match.sound);
@@ -63,11 +54,6 @@ function findSound(trackName, playlistName) {
   }
 
   return null;
-}
-
-async function stopEverything() {
-  const playing = (globalThis.game?.playlists?.contents ?? []).filter((p) => p.playing);
-  await Promise.all(playing.map((p) => p.stopAll()));
 }
 
 /**
