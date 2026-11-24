@@ -1,4 +1,8 @@
 import { actions } from './actions/index.js';
+import { runReport as runActorReport, watchActors } from './actors.js';
+import { configureApi } from './api.js';
+import { syncActiveCombat, watchCombat } from './combat/mirror.js';
+import { reportRunningCombats, watchRunningCombats } from './combat/running.js';
 import { getCoreVersion } from './compat.js';
 import { reportPlaylists, watchPlaylists } from './playlists.js';
 
@@ -48,6 +52,8 @@ Hooks.once('ready', async () => {
     return;
   }
 
+  configureApi(apiBase, token);
+
   try {
     const bootstrap = await fetchBootstrap(apiBase, token);
     activeConnection = connect({ apiBase, token, bootstrap });
@@ -58,6 +64,14 @@ Hooks.once('ready', async () => {
       console.warn(`${LOG_PREFIX} initial playlist report failed:`, err);
     });
     watchPlaylists(apiBase, token);
+
+    runActorReport();
+    watchActors();
+
+    watchCombat();
+    watchRunningCombats();
+    reportRunningCombats().catch((err) => console.warn(`${LOG_PREFIX} running-combat report failed:`, err));
+    syncActiveCombat().catch((err) => console.warn(`${LOG_PREFIX} could not catch up with the Tome's combat:`, err));
   } catch (err) {
     console.error(`${LOG_PREFIX} bootstrap failed:`, err);
     ui.notifications?.error(`World Building Tome: ${err.message || 'connection failed'}`);

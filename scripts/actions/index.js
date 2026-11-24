@@ -1,5 +1,6 @@
 import shareImage from './share-image.js';
 import playTrack from './play-track.js';
+import { onCombatChanged, onCombatDeleted, onCombatStarted } from '../combat/mirror.js';
 
 /**
  * Registry of broadcast event names → handler. Adding a future action is
@@ -11,4 +12,7 @@ import playTrack from './play-track.js';
 export const actions = {
   'share-image': shareImage,
   'play-track': playTrack,
+  'combat-started': onCombatStarted,
+  'combat-changed': onCombatChanged,
+  'combat-deleted': onCombatDeleted,
 };
