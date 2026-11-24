@@ -26,17 +26,19 @@ jobs:
             exit 1
           fi
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test
+        run: npm ci && npm test
+
       - name: Build module.zip
         run: |
           mkdir -p build/"$MODULE_ID"
-          rsync -a \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.idea' \
-            --exclude='.vscode' \
-            --exclude='.DS_Store' \
-            --exclude='build' \
-            ./ build/"$MODULE_ID"/
+          # Allowlist, not excludes: the repo now carries dev-only tooling
+          # (package.json, tests/, node_modules/) that must not ship.
+          cp -R module.json lang styles scripts LICENSE README.md build/"$MODULE_ID"/
           ( cd build && zip -rq module.zip "$MODULE_ID" )
           cp module.json build/module.json
 

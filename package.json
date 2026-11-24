@@ -1,0 +1,14 @@
+{
+  "name": "worldbuildingtome-bridge",
+  "private": true,
+  "type": "module",
+  "description": "Dev tooling only. The module ships as plain ES modules with no build step.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "happy-dom": "^15.11.7",
+    "vitest": "^2.1.8"
+  }
+}
