@@ -5,6 +5,7 @@ import { syncActiveCombat, watchCombat } from './combat/mirror.js';
 import { reportRunningCombats, watchRunningCombats } from './combat/running.js';
 import { getCoreVersion } from './compat.js';
 import { reportPlaylists, watchPlaylists } from './playlists.js';
+import { registerTheme } from './theme.js';
 
 const MODULE_ID = 'worldbuildingtome-bridge';
 const LOG_PREFIX = '[WBT]';
@@ -35,6 +36,8 @@ Hooks.once('init', () => {
     type: String,
     default: '',
   });
+
+  registerTheme(MODULE_ID);
 });
 
 Hooks.once('ready', async () => {
