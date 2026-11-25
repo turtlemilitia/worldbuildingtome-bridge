@@ -3,6 +3,7 @@ import {
   actorFingerprint,
   actorPayload,
   chunk,
+  droppedFeatures,
   isReportable,
   PAYLOAD_VERSION,
   reportActors,
@@ -122,6 +123,98 @@ describe('traits', () => {
   });
 });
 
+/**
+ * A dnd5e feat item: `activation` is its first activity's activation type,
+ * `undefined` meaning it has no activities at all.
+ */
+function feature({ id, name, sort = 0, trait = false, activation, type = 'feat', identifier, uses, description = `<p>${name}.</p>` }) {
+  const activities = activation === undefined ? [] : [{ activation: { type: activation }, uses: { label: '' } }];
+  return {
+    id,
+    name,
+    sort,
+    type,
+    identifier: identifier ?? name.toLowerCase().replace(/\W+/g, '-'),
+    system: {
+      properties: new Set(trait ? ['trait'] : []),
+      activities: { contents: activities, size: activities.length },
+      uses: { label: uses ?? '' },
+      description: { value: description },
+    },
+  };
+}
+
+const EMBED_WITHOUT_TRAITS = '<div class="statblock npc rules-2024"><h4 class="statblock-title">Count Caer Ddu</h4>'
+  + '<div class="statblock-content"><div class="statblock-header"></div>'
+  + '<div class="statblock-actions action"><h5 class="statblock-actions-title">Actions</h5>'
+  + '<div class="statblock-action" data-id="multi"><p><span class="name">Multiattack</span> Three strikes.</p></div>'
+  + '</div></div></div>';
+
+/** The homebrew Umbral Lord whose blank/"special" activations dnd5e's embed drops. */
+function countCaerDdu({ embed = EMBED_WITHOUT_TRAITS, items, extraItems = [] } = {}) {
+  const all = items ?? [
+    feature({ id: 'multi', name: 'Multiattack', sort: 100, activation: 'action' }),
+    feature({ id: 'legres', name: 'Legendary Resistance', sort: 200, activation: 'special', uses: '3/Day' }),
+    feature({ id: 'escape', name: 'Shadow Escape', sort: 300, activation: '' }),
+    feature({
+      id: 'weakness',
+      name: 'Vampire Weakness',
+      sort: 400,
+      activation: '',
+      description: '<p class="feature">The vampire takes [[/damage 20 radiant]] damage in sunlight.</p><p class="feature-trait">Running water hurts.</p>',
+    }),
+    feature({ id: 'strike', name: 'Umbral Strike', sort: 500, activation: 'legendary' }),
+    feature({ id: 'legact', name: 'Legendary Actions', sort: 600, identifier: 'legendary-actions' }),
+    { id: 'hadar', name: 'Hunger of Hadar', type: 'spell', system: { properties: new Set(), activities: { contents: [{ activation: { type: '' } }], size: 1 } } },
+  ];
+
+  return npc({
+    name: 'Count Caer Ddu',
+    items: [...all, ...extraItems],
+    system: {
+      ...npc().system,
+      toEmbed: async () => {
+        const template = document.createElement('template');
+        template.innerHTML = embed;
+        return template.content;
+      },
+    },
+  });
+}
+
+const fakeEnrich = async (html) => html.replace(/\[\[\/damage [^\]]+]]/g, '<b>enriched</b>');
+
+function parse(html) {
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  return root;
+}
+
+function names(section) {
+  return Array.from(section.querySelectorAll('.statblock-action > .name, .statblock-action > p > .name'))
+    .map((name) => name.textContent);
+}
+
+describe('droppedFeatures', () => {
+  it('picks exactly the features dnd5e\'s embed has no section for', () => {
+    expect(droppedFeatures(countCaerDdu()).map((item) => item.name))
+      .toEqual(['Legendary Resistance', 'Shadow Escape', 'Vampire Weakness']);
+  });
+
+  it('keeps features flagged as traits or with no activities, as dnd5e files those under Traits', () => {
+    const actor = countCaerDdu({
+      items: [
+        feature({ id: 'a', name: 'Vampire Weakness', activation: '', trait: true }),
+        feature({ id: 'b', name: 'Undead Nature' }),
+        feature({ id: 'c', name: 'Sunlight Hypersensitivity', activation: '' }),
+        feature({ id: 'd', name: 'Bite', type: 'weapon', activation: 'special' }),
+      ],
+    });
+
+    expect(droppedFeatures(actor).map((item) => item.name)).toEqual(['Sunlight Hypersensitivity', 'Bite']);
+  });
+});
+
 describe('statblockHtml', () => {
   it('serialises the dnd5e embed fragment', async () => {
     const actor = npc({
@@ -136,6 +229,73 @@ describe('statblockHtml', () => {
     });
 
     expect(await statblockHtml(actor)).toBe('<div class="statblock npc"><p>Claw</p></div>');
+  });
+
+  it('files features the embed dropped under a new Traits section, ahead of Actions', async () => {
+    const actor = countCaerDdu();
+
+    const html = await statblockHtml(actor, { enrich: fakeEnrich });
+
+    const root = parse(html);
+    const sections = Array.from(root.querySelectorAll('.statblock-content > .statblock-actions'));
+    expect(sections.map((section) => section.className)).toEqual(['statblock-actions trait', 'statblock-actions action']);
+    expect(sections[0].querySelector('.statblock-actions-title').textContent).toBe('Traits');
+    expect(names(sections[0])).toEqual(['Legendary Resistance (3/Day)', 'Shadow Escape', 'Vampire Weakness']);
+    expect(names(sections[1])).toEqual(['Multiattack']);
+  });
+
+  it('keeps dnd5e\'s feature markup, with the name run into the enriched first paragraph', async () => {
+    const html = await statblockHtml(countCaerDdu(), { enrich: fakeEnrich });
+
+    const weakness = parse(html).querySelector('.statblock-action[data-id="weakness"]');
+    expect(weakness.innerHTML).toBe(
+      '<p class="feature"><span class="name">Vampire Weakness</span> The vampire takes <b>enriched</b> damage in sunlight.</p>'
+      + '<p class="feature-trait">Running water hurts.</p>',
+    );
+  });
+
+  it('slots dropped features into an existing Traits section by sort order', async () => {
+    const actor = countCaerDdu({
+      embed: '<div class="statblock npc rules-2024"><div class="statblock-content">'
+        + '<div class="statblock-actions trait"><h5 class="statblock-actions-title">Traits</h5>'
+        + '<div class="statblock-action" data-id="climb"><span class="name">Spider Climb</span></div></div>'
+        + '<div class="statblock-actions action"><div class="statblock-action" data-id="multi"><span class="name">Multiattack</span></div></div>'
+        + '</div></div>',
+      extraItems: [feature({ id: 'climb', name: 'Spider Climb', sort: 250, trait: true })],
+    });
+
+    const html = await statblockHtml(actor, { enrich: fakeEnrich });
+
+    const traits = parse(html).querySelector('.statblock-actions.trait');
+    expect(traits.querySelectorAll('.statblock-actions-title')).toHaveLength(1);
+    expect(names(traits)).toEqual(['Legendary Resistance (3/Day)', 'Spider Climb', 'Shadow Escape', 'Vampire Weakness']);
+  });
+
+  it('leaves the heading off a 2014 statblock, as dnd5e does', async () => {
+    const actor = countCaerDdu({ embed: EMBED_WITHOUT_TRAITS.replace('rules-2024', 'rules-2014') });
+
+    const html = await statblockHtml(actor, { enrich: fakeEnrich });
+
+    const traits = parse(html).querySelector('.statblock-actions.trait');
+    expect(traits.querySelector('.statblock-actions-title')).toBeNull();
+    expect(names(traits)).toHaveLength(3);
+  });
+
+  it('leaves the embed untouched when nothing was dropped', async () => {
+    const actor = countCaerDdu({ items: [feature({ id: 'multi', name: 'Multiattack', activation: 'action' })] });
+    const enrich = vi.fn(fakeEnrich);
+
+    expect(await statblockHtml(actor, { enrich })).toBe(EMBED_WITHOUT_TRAITS);
+    expect(enrich).not.toHaveBeenCalled();
+  });
+
+  it('treats a feature name as text, not markup', async () => {
+    const actor = countCaerDdu({ items: [feature({ id: 'x', name: '<img src=x onerror=alert(1)>', activation: '', description: '<p>Hides.</p>' })] });
+
+    const html = await statblockHtml(actor, { enrich: fakeEnrich });
+
+    expect(html).not.toContain('<img');
+    expect(parse(html).querySelector('.statblock-action[data-id="x"] .name').textContent).toBe('<img src=x onerror=alert(1)>');
   });
 
   it('returns null for characters and for failed renders', async () => {

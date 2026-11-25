@@ -13,7 +13,7 @@ const BATCH_SIZE = 25;
 const REPORTED_TYPES = ['character', 'npc'];
 
 /** Bump when the shape of what we send changes, so every actor is resent once. */
-export const PAYLOAD_VERSION = 3;
+export const PAYLOAD_VERSION = 4;
 
 /**
  * @param {any} actor
@@ -112,14 +112,40 @@ function stripTags(html) {
   return String(html).replace(/<[^>]*>/g, ' ');
 }
 
+const EMBED_SECTIONS = ['trait', 'action', 'bonus', 'reaction', 'legendary', 'mythic'];
+const SECTION_DESCRIPTION_ITEMS = ['legendary-actions', 'mythic-actions'];
+
 /**
- * dnd5e renders NPC statblocks itself (`NPCData#toEmbed`), so the Tome shows
- * exactly what the sheet shows. PCs have no statblock embed.
+ * Features dnd5e leaves out of its statblock embed. It files each feature
+ * under its first activity's activation type unless it is flagged as a trait,
+ * so a homebrew feature whose activation is blank or "special" matches no
+ * section and silently disappears, though the sheet still shows it.
  *
  * @param {any} actor
+ * @returns {any[]}
+ */
+export function droppedFeatures(actor) {
+  return Array.from(actor.items ?? []).filter((item) => {
+    if (!['feat', 'weapon'].includes(item.type) || SECTION_DESCRIPTION_ITEMS.includes(item.identifier)) {
+      return false;
+    }
+    const category = item.system?.properties?.has?.('trait')
+      ? 'trait'
+      : (item.system?.activities?.contents?.[0]?.activation?.type ?? 'trait');
+    return !EMBED_SECTIONS.includes(category);
+  });
+}
+
+/**
+ * dnd5e renders NPC statblocks itself (`NPCData#toEmbed`), so the Tome shows
+ * exactly what the sheet shows, plus any features the embed dropped, filed
+ * under traits. PCs have no statblock embed.
+ *
+ * @param {any} actor
+ * @param {{ enrich?: (html: string, item: any) => Promise<string> }} [options]
  * @returns {Promise<string | null>}
  */
-export async function statblockHtml(actor) {
+export async function statblockHtml(actor, { enrich = enrichDescription } = {}) {
   if (actor.type !== 'npc' || typeof actor.system?.toEmbed !== 'function') {
     return null;
   }
@@ -131,11 +157,98 @@ export async function statblockHtml(actor) {
     }
     const container = document.createElement('div');
     container.append(fragment);
+    await restoreDroppedFeatures(container, actor, enrich);
     return container.innerHTML.trim() || null;
   } catch (err) {
     console.warn(`${LOG_PREFIX} could not render a statblock for "${actor.name}":`, err);
     return null;
   }
+}
+
+/**
+ * @param {HTMLElement} container
+ * @param {any} actor
+ * @param {(html: string, item: any) => Promise<string>} enrich
+ */
+async function restoreDroppedFeatures(container, actor, enrich) {
+  const dropped = droppedFeatures(actor);
+  const content = container.querySelector('.statblock-content');
+  if (!dropped.length || !content) {
+    return;
+  }
+
+  const section = content.querySelector('.statblock-actions.trait') ?? createTraitSection(container, content);
+  const sortOf = new Map(Array.from(actor.items ?? []).map((item) => [item.id, item.sort ?? 0]));
+
+  for (const item of dropped) {
+    const action = await featureElement(item, enrich);
+    const sort = item.sort ?? 0;
+    const next = childrenWithClass(section, 'statblock-action')
+      .find((existing) => (sortOf.get(existing.dataset.id) ?? 0) > sort);
+    section.insertBefore(action, next ?? null);
+  }
+}
+
+/**
+ * Mirrors dnd5e's `npc-embed.hbs` trait section: 2014 statblocks leave the
+ * heading off, and traits come before every other section.
+ *
+ * @param {HTMLElement} container
+ * @param {HTMLElement} content
+ */
+function createTraitSection(container, content) {
+  const section = document.createElement('div');
+  section.className = 'statblock-actions trait';
+  if (!container.querySelector('.statblock.rules-2014')) {
+    const title = document.createElement('h5');
+    title.className = 'statblock-actions-title';
+    title.textContent = localize('DND5E.NPC.SECTIONS.Traits', 'Traits');
+    section.append(title);
+  }
+  content.insertBefore(section, childrenWithClass(content, 'statblock-actions')[0] ?? null);
+  return section;
+}
+
+function childrenWithClass(parent, className) {
+  return Array.from(parent.children).filter((child) => child.classList.contains(className));
+}
+
+/**
+ * Same markup dnd5e gives a feature: the description's opening `<p>` is
+ * hoisted so the name runs into the first paragraph.
+ *
+ * @param {any} item
+ * @param {(html: string, item: any) => Promise<string>} enrich
+ */
+async function featureElement(item, enrich) {
+  let description = await enrich(String(item.system?.description?.value ?? ''), item);
+  const openingTag = description.match(/^\s*(<p(?:\s[^>]+)?>)/i)?.[0] ?? '';
+  if (openingTag) {
+    description = description.replace(openingTag, '');
+  }
+
+  const activities = item.system?.activities;
+  const uses = item.system?.uses?.label
+    || (activities?.size === 1 ? activities.contents[0]?.uses?.label : undefined);
+  const name = document.createElement('span');
+  name.className = 'name';
+  name.textContent = uses ? `${item.name} (${uses})` : String(item.name ?? '');
+
+  const action = document.createElement('div');
+  action.className = 'statblock-action';
+  action.dataset.id = item.id;
+  action.innerHTML = `${openingTag}${name.outerHTML} ${description}`;
+  return action;
+}
+
+function enrichDescription(html, item) {
+  const TextEditor = globalThis.foundry?.applications?.ux?.TextEditor?.implementation ?? globalThis.TextEditor;
+  return TextEditor.enrichHTML(html, { secrets: false, rollData: item.getRollData?.(), relativeTo: item });
+}
+
+function localize(key, fallback) {
+  const text = globalThis.game?.i18n?.localize?.(key);
+  return text && text !== key ? text : fallback;
 }
 
 /**
