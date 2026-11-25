@@ -336,6 +336,24 @@ body.wbt-theme .ui-control {
   transition: background-color 0.5s, border-color 0.5s, color 0.5s;
 }
 
+/* Foundry joins split-button groups (the chat message modes) edge to edge
+   and strips their inner borders; as round buttons they need the Tome's
+   icon-row spacing and a full border each instead. */
+body.wbt-theme .split-button,
+body.wbt-theme #chat-controls .control-buttons {
+  gap: 0.375rem;
+}
+
+body.wbt-theme .split-button .ui-control {
+  border-width: 1px;
+  border-radius: 9999px;
+}
+
+body.wbt-theme .split-button .ui-control:hover + .ui-control,
+body.wbt-theme .split-button .ui-control[aria-pressed="true"] + .ui-control {
+  border-inline-start-color: var(--control-border-color);
+}
+
 body.wbt-theme #scene-navigation .ui-control.scene {
   padding-inline: 0.85rem;
 }
