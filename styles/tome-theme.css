@@ -186,28 +186,25 @@ body.wbt-theme .application fieldset {
   border-radius: var(--wbt-radius-md);
 }
 
-/* ---------- Tabs: the Tome's pill nav ---------- */
+/* ---------- Tabs ----------
+   Horizontal window tabs are bare labels that turn amber on hover and when
+   current, like the Tome's sidebar rows — a filled pill reads as a button. */
 
 body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control) {
-  border: 1px solid transparent;
-  border-radius: 9999px;
-  padding-inline: 0.85rem;
-  color: var(--wbt-stone-200);
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--wbt-stone-300);
   text-shadow: none;
-  transition: background-color 0.5s, border-color 0.5s;
+  transition: color 0.3s;
 }
 
-body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control):hover {
-  border-color: var(--wbt-yellow-500);
-  background: var(--wbt-glass-strong);
-  text-shadow: none;
-}
-
-body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control).active {
-  background: var(--wbt-active);
-  border-color: transparent;
-  color: var(--wbt-stone-100);
-  box-shadow: var(--wbt-shadow);
+body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control):is(:hover, .active) {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--wbt-amber-500);
   text-shadow: none;
 }
 
