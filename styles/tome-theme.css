@@ -1,0 +1,612 @@
+/* The Tome's look for Foundry's own interface, applied while the client
+   setting puts `wbt-theme` on <body>. Foundry imports module stylesheets into
+   its `modules` cascade layer, which outranks the core and system layers, so
+   these rules win without !important.
+
+   The Tome's grammar, which everything below follows:
+   - Everything is Poppins at the Tome's small size (12px). Labels — tabs,
+     buttons, headers — are uppercase with wide tracking; menu and list rows
+     are uppercase without it. Playfair is kept for page titles only.
+   - Panels are glass: a faint stone tint over a blurred backdrop, a hairline
+     stone border, big rounding. Nothing is a solid slab.
+   - The accent is yellow/amber (active pills, section rules); burnt orange
+     is kept for focus rings and the top heading of prose. */
+
+body.wbt-theme {
+  --wbt-stone-50: #fafaf9;
+  --wbt-stone-100: #f5f5f4;
+  --wbt-stone-200: #e7e5e4;
+  --wbt-stone-300: #d6d3d1;
+  --wbt-stone-400: #a8a29e;
+  --wbt-stone-500: #78716c;
+  --wbt-stone-600: #57534e;
+  --wbt-stone-700: #44403c;
+  --wbt-stone-800: #292524;
+  --wbt-stone-900: #1c1917;
+  --wbt-stone-950: #0c0a09;
+  --wbt-yellow-500: #eab308;
+  --wbt-yellow-700: #a16207;
+  --wbt-amber-500: #f59e0b;
+  --wbt-emerald-700: #047857;
+  --wbt-burn-orange: #c05746;
+
+  --wbt-glass: rgb(168 162 158 / 0.05);
+  --wbt-glass-strong: rgb(168 162 158 / 0.1);
+  --wbt-glass-hover: rgb(168 162 158 / 0.5);
+  --wbt-glass-border: rgb(168 162 158 / 0.3);
+  --wbt-scrim: rgb(12 10 9 / 0.7);
+  --wbt-dark-glass: rgb(28 25 23 / 0.85);
+  --wbt-active: rgb(234 179 8 / 0.5);
+  --wbt-blur: blur(12px);
+  --wbt-shadow: 0 4px 6px -1px var(--wbt-stone-950), 0 2px 4px -2px var(--wbt-stone-950);
+  --wbt-radius: 18px;
+  --wbt-radius-md: 12px;
+  --wbt-radius-sm: 8px;
+
+  --wbt-font-label: "Poppins", ui-sans-serif, sans-serif;
+  --wbt-font-display: "Playfair Display", serif;
+  --wbt-tracking: 0.25em;
+  --wbt-tracking-wide: 0.4em;
+
+  --color-warm-1: var(--wbt-amber-500);
+  --color-warm-2: var(--wbt-yellow-700);
+  --color-warm-3: #713f12;
+  --color-cool-3: var(--wbt-stone-600);
+  --color-cool-4: var(--wbt-stone-700);
+  --color-cool-5: var(--wbt-stone-900);
+  --color-cool-5-25: rgb(28 25 23 / 0.25);
+  --color-cool-5-50: rgb(28 25 23 / 0.5);
+  --color-cool-5-75: rgb(28 25 23 / 0.75);
+  --color-cool-5-90: rgb(28 25 23 / 0.9);
+  --color-light-1: var(--wbt-stone-50);
+  --color-light-2: var(--wbt-stone-100);
+  --color-light-3: var(--wbt-stone-200);
+  --color-light-4: var(--wbt-stone-300);
+  --color-light-5: var(--wbt-stone-400);
+  --color-light-6: var(--wbt-stone-500);
+  --color-dark-1: var(--wbt-stone-950);
+  --color-dark-2: var(--wbt-stone-900);
+  --color-dark-3: var(--wbt-stone-800);
+  --color-dark-4: var(--wbt-stone-700);
+  --color-dark-5: var(--wbt-stone-600);
+  --color-dark-6: var(--wbt-stone-500);
+  --color-text-hyperlink: #60a5fa;
+  --color-border-highlight: var(--wbt-yellow-500);
+  --color-shadow-highlight: var(--wbt-yellow-500);
+
+  --font-sans: "Poppins", ui-sans-serif, sans-serif;
+  --font-primary: var(--font-sans);
+  --font-body: var(--font-sans);
+  --font-serif: var(--font-sans);
+  --font-blockquote: var(--font-sans);
+  --font-h1: var(--wbt-font-display);
+  --font-h2: var(--wbt-font-label);
+  --font-h3: var(--wbt-font-label);
+
+  /* The Tome runs on a 12px base where Foundry runs on 14px; shifting Foundry's
+     own type ramp down keeps every core and system size in proportion. */
+  --font-size-13: 0.75rem;
+  --font-size-14: 0.75rem;
+  --font-size-15: 0.8125rem;
+  --font-size-16: 0.875rem;
+  --font-size-18: 1rem;
+  --font-size-20: 1.125rem;
+
+  --hr-gradient: linear-gradient(90deg, transparent 0%, var(--wbt-stone-500) 50%, transparent 100%);
+  --button-focus-outline-color: var(--wbt-burn-orange);
+  --input-focus-outline-color: var(--wbt-burn-orange);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Labels ---------- */
+
+/* :where() keeps these broad defaults at the bottom of this file's
+   specificity, so the targeted rules below (menus, prose) win without
+   having to outrank a long selector list. */
+body.wbt-theme :where(
+  .window-header .window-title,
+  nav.tabs [data-tab]:not(.icon, .ui-control),
+  .application button:not(.icon, .ui-control),
+  .application a.button,
+  .application .form-group > label,
+  .application fieldset > legend,
+  .application h2,
+  .application h3,
+  .application h4,
+  .directory-item .folder-name,
+  .folder-header h3,
+  .chat-message .message-sender,
+  #sidebar .header-actions button
+) {
+  font-family: var(--wbt-font-label);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--wbt-tracking);
+  font-size: 0.625rem;
+}
+
+body.wbt-theme .application h1:not(.window-title) {
+  font-family: var(--wbt-font-display);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--wbt-stone-100);
+}
+
+body.wbt-theme :is(.application h2, .application h3, .folder-header h3) {
+  color: var(--wbt-stone-400);
+  letter-spacing: var(--wbt-tracking-wide);
+  border-bottom: 1px solid var(--wbt-yellow-500);
+}
+
+body.wbt-theme :is(strong, b, label, legend) {
+  font-weight: 500;
+}
+
+/* ---------- Glass windows ---------- */
+
+body.wbt-theme .application {
+  --background: linear-gradient(var(--wbt-glass), var(--wbt-glass)), var(--wbt-scrim);
+  --color-header-background: transparent;
+  --color-border: var(--wbt-glass-border);
+  --color-tabs-border: var(--wbt-glass-border);
+  --color-fieldset-border: var(--wbt-glass-border);
+  --color-form-label: var(--wbt-stone-300);
+  --color-form-hint: var(--wbt-stone-400);
+  color: var(--wbt-stone-300);
+  font-size: 0.75rem;
+  border: 1px solid var(--wbt-glass-border);
+  border-radius: var(--wbt-radius);
+  box-shadow: var(--wbt-shadow);
+  backdrop-filter: var(--wbt-blur);
+  -webkit-backdrop-filter: var(--wbt-blur);
+}
+
+/* dnd5e paints its journals with a denim texture instead of the window
+   background. */
+body.wbt-theme .application.dnd5e2-journal {
+  background: var(--background);
+}
+
+body.wbt-theme .application .window-content {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.wbt-theme .application .window-header {
+  border-bottom: 1px solid var(--wbt-glass-border);
+}
+
+body.wbt-theme .application .window-title {
+  color: var(--wbt-stone-300);
+}
+
+body.wbt-theme .application fieldset {
+  border-radius: var(--wbt-radius-md);
+}
+
+/* ---------- Tabs: the Tome's pill nav ---------- */
+
+body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control) {
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  padding-inline: 0.85rem;
+  color: var(--wbt-stone-200);
+  text-shadow: none;
+  transition: background-color 0.5s, border-color 0.5s;
+}
+
+body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control):hover {
+  border-color: var(--wbt-yellow-500);
+  background: var(--wbt-glass-strong);
+  text-shadow: none;
+}
+
+body.wbt-theme nav.tabs:not(.vertical) [data-tab]:not(.ui-control).active {
+  background: var(--wbt-active);
+  border-color: transparent;
+  color: var(--wbt-stone-100);
+  box-shadow: var(--wbt-shadow);
+  text-shadow: none;
+}
+
+body.wbt-theme nav.tabs:not(.vertical) {
+  border: none;
+  gap: 0.25rem;
+}
+
+/* ---------- Menus & lists: the Tome's sidebar ----------
+   Vertical menus, document directories and the journal page list read as the
+   Tome's sidebar: bare uppercase rows, amber when hovered or current, nested
+   levels hung off a yellow rule. No boxes, no pills. */
+
+body.wbt-theme :where(
+  nav.tabs.vertical [data-tab],
+  .directory-item .entry-name,
+  .journal-sidebar .page-title,
+  .journal-sidebar .heading-link,
+  #players .player-name,
+  #scene-navigation .scene span
+) {
+  font-family: var(--wbt-font-label);
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: normal;
+  line-height: 1.375;
+}
+
+body.wbt-theme nav.tabs.vertical {
+  gap: 0;
+}
+
+body.wbt-theme nav.tabs.vertical [data-tab] {
+  justify-content: space-between;
+  padding: 0.375rem 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--wbt-stone-300);
+  text-shadow: none;
+  transition: color 0.3s;
+}
+
+body.wbt-theme nav.tabs.vertical [data-tab] .count {
+  color: var(--wbt-stone-500);
+}
+
+body.wbt-theme :is(
+  nav.tabs.vertical [data-tab]:hover,
+  nav.tabs.vertical [data-tab].active,
+  .directory-item.entry:hover .entry-name,
+  .journal-sidebar .page.active .page-title,
+  .journal-sidebar :is(.page-heading, .heading-link):hover,
+  .journal-sidebar .page-heading:hover .page-title
+) {
+  color: var(--wbt-amber-500);
+  background: none;
+  border: none;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+body.wbt-theme .journal-sidebar :is(.page, .page-heading, .heading) {
+  background: none;
+  border: none;
+}
+
+body.wbt-theme .journal-sidebar .headings,
+body.wbt-theme .directory-item.folder > .subdirectory {
+  margin-left: 0.375rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--wbt-yellow-500);
+}
+
+/* ---------- Buttons & inputs: the Tome's Button variants ---------- */
+
+body.wbt-theme .application :is(button, a.button) {
+  --button-background-color: rgb(68 64 60 / 0.5);
+  --button-border-color: transparent;
+  --button-text-color: var(--wbt-stone-100);
+  --button-hover-background-color: var(--wbt-stone-800);
+  --button-hover-border-color: transparent;
+  --button-hover-text-color: var(--wbt-stone-50);
+  border-radius: var(--wbt-radius-sm);
+  transition: background-color 0.5s, border-color 0.5s, color 0.5s;
+}
+
+body.wbt-theme .application :is(button.bright, .form-footer button[type="submit"]) {
+  --button-background-color: var(--wbt-emerald-700);
+  --button-text-color: #fff;
+  --button-hover-background-color: var(--wbt-amber-500);
+  --button-hover-text-color: #fff;
+}
+
+body.wbt-theme .application :is(input:not(.title), select, textarea) {
+  --input-background-color: var(--wbt-stone-700);
+  --input-border-color: transparent;
+  --input-text-color: var(--wbt-stone-100);
+  font-family: var(--wbt-font-label);
+  border-radius: var(--wbt-radius-sm);
+}
+
+body.wbt-theme :is(input[type="checkbox"], input[type="radio"]) {
+  --checkbox-checked-color: #f87171;
+  --checkbox-background-color: transparent;
+}
+
+/* ---------- Icon buttons: the Tome's round glass icon buttons ---------- */
+
+body.wbt-theme .ui-control {
+  --control-bg-color: var(--wbt-glass-strong);
+  --control-border-color: var(--wbt-glass-border);
+  --control-icon-color: var(--wbt-stone-300);
+  --control-hover-bg-color: var(--wbt-glass-hover);
+  --control-hover-border-color: var(--wbt-yellow-500);
+  --control-hover-icon-color: var(--wbt-stone-50);
+  --control-active-bg-color: var(--wbt-active);
+  --control-active-border-color: var(--wbt-yellow-500);
+  --control-active-icon-color: var(--wbt-stone-50);
+  border-radius: 9999px;
+  box-shadow: var(--wbt-shadow);
+  backdrop-filter: var(--wbt-blur);
+  -webkit-backdrop-filter: var(--wbt-blur);
+  transition: background-color 0.5s, border-color 0.5s, color 0.5s;
+}
+
+body.wbt-theme #scene-navigation .ui-control.scene {
+  padding-inline: 0.85rem;
+}
+
+body.wbt-theme .application .window-header .header-control {
+  border-radius: 9999px;
+  color: var(--wbt-stone-400);
+}
+
+body.wbt-theme .application .window-header .header-control:hover {
+  color: var(--wbt-stone-50);
+  background: var(--wbt-glass-strong);
+}
+
+body.wbt-theme #hotbar .slot {
+  background: var(--wbt-glass-strong);
+  border: 1px solid var(--wbt-glass-border);
+  border-radius: var(--wbt-radius-md);
+  box-shadow: var(--wbt-shadow);
+  backdrop-filter: var(--wbt-blur);
+  -webkit-backdrop-filter: var(--wbt-blur);
+}
+
+body.wbt-theme #hotbar .slot:hover {
+  border-color: var(--wbt-yellow-500);
+}
+
+body.wbt-theme #hotbar .slot .key {
+  font-family: var(--wbt-font-label);
+  font-size: 0.625rem;
+  color: var(--wbt-stone-400);
+}
+
+/* Font Awesome Pro ships with Foundry; its light weight is the closest match to
+   the Tome's Lucide line icons for every glyph tome-icons.css doesn't swap. */
+body.wbt-theme :is(.fa-solid, .fas, .fa-regular, .far) {
+  --fa-style: 300;
+}
+
+/* ---------- Notifications ---------- */
+
+body.wbt-theme #notifications .notification {
+  border-radius: var(--wbt-radius-md);
+  backdrop-filter: var(--wbt-blur);
+  -webkit-backdrop-filter: var(--wbt-blur);
+  box-shadow: var(--wbt-shadow);
+}
+
+/* ---------- Sidebar, players ---------- */
+
+/* The sidebar sits over whatever the map shows, so it takes the Tome's dark
+   glass (its combat panels) rather than the light tint the windows use. */
+body.wbt-theme #sidebar {
+  --sidebar-background: var(--wbt-dark-glass);
+  --sidebar-separator: 1px solid var(--wbt-glass-border);
+  --sidebar-entry-hover-bg: transparent;
+}
+
+/* Foundry leaves the chat tab see-through by design; the dark glass applies
+   to every tab so chat stays readable over a bright map. */
+body.wbt-theme #sidebar-content {
+  background: var(--wbt-dark-glass);
+  border: 1px solid var(--wbt-glass-border);
+  border-radius: var(--wbt-radius);
+  backdrop-filter: var(--wbt-blur);
+  -webkit-backdrop-filter: var(--wbt-blur);
+}
+
+body.wbt-theme .directory-item.entry {
+  background: none;
+  border: none;
+  color: var(--wbt-stone-300);
+}
+
+body.wbt-theme .directory-item.folder > .folder-header {
+  background: transparent;
+  border: none;
+}
+
+body.wbt-theme #players {
+  --background-color: var(--wbt-dark-glass);
+  --border-color: var(--wbt-glass-border);
+}
+
+body.wbt-theme #players :is(#players-active, #players-inactive) {
+  border-radius: var(--wbt-radius-md);
+  backdrop-filter: var(--wbt-blur);
+  -webkit-backdrop-filter: var(--wbt-blur);
+}
+
+/* ---------- Chat: glass cards ---------- */
+
+body.wbt-theme .chat-message {
+  --chat-message-background: var(--wbt-glass-strong);
+  --chat-message-border-color: var(--wbt-glass-border);
+  --color-whisper-background: var(--wbt-glass-strong);
+  --color-whisper-border: var(--wbt-stone-500);
+  --color-blind-background: rgb(192 87 70 / 0.15);
+  --color-blind-border: var(--wbt-burn-orange);
+  --color-emote-background: var(--wbt-glass);
+  --color-emote-border: var(--wbt-glass-border);
+  color: var(--wbt-stone-300);
+  background: var(--chat-message-background);
+  border: 1px solid var(--chat-message-border-color);
+  border-radius: var(--wbt-radius-md);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+}
+
+/* Foundry renders the chat log in its light theme (for parchment) and dnd5e
+   draws its item cards for that light theme only, so inside a message the
+   text, button and card palettes are re-pointed at the dark stone ones. */
+body.wbt-theme .chat-message {
+  --color-text-emphatic: var(--wbt-stone-100);
+  --color-text-primary: var(--wbt-stone-200);
+  --color-text-secondary: var(--wbt-stone-300);
+  --color-text-subtle: var(--wbt-stone-400);
+  --color-text-dark-primary: var(--wbt-stone-200);
+  --color-text-dark-secondary: var(--wbt-stone-300);
+  --color-text-dark-inactive: var(--wbt-stone-500);
+  --button-background-color: rgb(68 64 60 / 0.5);
+  --button-border-color: var(--wbt-glass-border);
+  --button-text-color: var(--wbt-stone-100);
+  --button-hover-background-color: var(--wbt-stone-800);
+  --button-hover-border-color: var(--wbt-yellow-500);
+  --button-hover-text-color: var(--wbt-stone-50);
+  --dnd5e-color-card: rgb(41 37 36 / 0.8);
+  --dnd5e-background-card: rgb(41 37 36 / 0.8);
+  --dnd5e-color-parchment: var(--wbt-stone-800);
+  --dnd5e-background-parchment: var(--wbt-stone-800);
+  --dnd5e-color-gold: var(--wbt-glass-border);
+  --dnd5e-color-dark: var(--wbt-stone-200);
+  --dnd5e-color-faint: var(--wbt-stone-600);
+  --dnd5e-color-beige: var(--wbt-stone-500);
+  --dnd5e-color-tan: var(--wbt-stone-400);
+  --dnd5e-color-olive: var(--wbt-stone-300);
+  --dnd5e-color-groove: var(--wbt-stone-700);
+}
+
+/* dnd5e paints its cards with a paper texture and literal whisper colours. */
+body.wbt-theme .chat-message::before {
+  background-image: none;
+}
+
+body.wbt-theme .chat-message.whisper {
+  background: var(--color-whisper-background);
+  border-color: var(--color-whisper-border);
+  border-style: dashed;
+}
+
+body.wbt-theme .chat-message.blind {
+  background: var(--color-blind-background);
+  border-color: var(--color-blind-border);
+}
+
+body.wbt-theme .chat-message.emote {
+  background: var(--color-emote-background);
+  border-color: var(--color-emote-border);
+}
+
+body.wbt-theme .chat-message .message-header {
+  color: var(--wbt-stone-500);
+}
+
+body.wbt-theme .chat-message .message-header .message-sender {
+  color: var(--wbt-stone-200);
+}
+
+body.wbt-theme .chat-message .message-content :is(h1, h2) {
+  font-family: var(--wbt-font-display);
+  font-weight: 400;
+  color: var(--wbt-stone-100);
+  border: none;
+}
+
+/* ---------- Prose: the Tome's editor styles ---------- */
+
+/* The Tome sets a body in a solid stone card with a yellow hairline. */
+body.wbt-theme .journal-entry .journal-entry-content {
+  margin: 0.5rem;
+  background: rgb(28 25 23 / 0.85);
+  border: 1px solid #ca8a04;
+  border-radius: var(--wbt-radius);
+}
+
+body.wbt-theme .journal-page-content {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--wbt-stone-300);
+}
+
+body.wbt-theme .journal-entry .journal-header,
+body.wbt-theme .journal-entry .journal-header input.title {
+  background: transparent;
+}
+
+body.wbt-theme .journal-entry .journal-header input.title,
+body.wbt-theme .journal-entry .journal-page-header :is(h1, h2) {
+  font-family: var(--wbt-font-display);
+  font-variant: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: var(--wbt-stone-100);
+  border: none;
+}
+
+body.wbt-theme .application .journal-page-content :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--wbt-font-label);
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.25;
+  border-bottom: none;
+}
+
+body.wbt-theme .application .journal-page-content h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--wbt-burn-orange);
+}
+
+body.wbt-theme .application .journal-page-content :is(h2, h3, h4, h5, h6) {
+  font-weight: 500;
+  color: var(--wbt-stone-100);
+}
+
+body.wbt-theme .application .journal-page-content h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+body.wbt-theme .application .journal-page-content h3 {
+  font-size: 1.125rem;
+}
+
+body.wbt-theme .application .journal-page-content h4 {
+  font-size: 1rem;
+}
+
+body.wbt-theme .application .journal-page-content h5 {
+  font-size: 0.875rem;
+}
+
+body.wbt-theme .application .journal-page-content h6 {
+  font-size: 0.8125rem;
+}
+
+body.wbt-theme .journal-page-content blockquote {
+  margin: 0.5rem 0;
+  padding: 1rem;
+  border: none;
+  border-radius: var(--wbt-radius-sm);
+  background: rgb(5 150 105 / 0.1);
+  color: var(--wbt-stone-300);
+  font-style: normal;
+}
+
+body.wbt-theme .journal-page-content a:not(.content-link) {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+body.wbt-theme :is(.content-link, .inline-roll) {
+  border-radius: var(--wbt-radius-sm);
+}
+
+@media (prefers-reduced-transparency) {
+  body.wbt-theme .application,
+  body.wbt-theme #sidebar {
+    --background: var(--wbt-stone-900);
+    --sidebar-background: var(--wbt-stone-900);
+  }
+}

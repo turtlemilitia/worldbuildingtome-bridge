@@ -35,6 +35,7 @@ For local development, clone alongside your Foundry data dir and symlink into `D
 |-------------------|---------|
 | API base URL      | The World Building Tome backend (e.g. `https://api.worldbuildingtome.io`). |
 | Connection token  | The Sanctum PAT shown once when the connection is created in the app. Lost tokens require revoke + recreate. |
+| World Building Tome look | Per-browser, on by default. Re-skins Foundry's interface like the Tome (`styles/tome-theme.css`, icons in `styles/tome-icons.css` — regenerate those with `tools/build-tome-icons.mjs`); switching it off restores stock Foundry without a reload. |
 
 ## Adding a new action
 

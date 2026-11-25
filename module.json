@@ -24,7 +24,9 @@
     "scripts/main.js"
   ],
   "styles": [
-    "styles/wbt.css"
+    "styles/wbt.css",
+    "styles/tome-theme.css",
+    "styles/tome-icons.css"
   ],
   "languages": [
     {
